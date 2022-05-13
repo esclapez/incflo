@@ -77,6 +77,19 @@ void incflo::prob_set_inflow_velocity (int /*grid_id*/, Orientation ori, Box con
             vel(i,j,k,2) = 6. * w * x * (1.-x);
         });
     }
+    else if (666 == m_probtype)
+    {
+        const amrex::Real* prob_lo = Geom(lev).ProbLo();
+        Real dxinv = 1.0 / Geom(lev).Domain().length(0);
+        amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+            Real x = prob_lo[0] + (i+0.5)*dxinv;
+            Real r = std::sqrt(x*x);
+            Real eta = 0.5 * (1.0 - tanh( (r - 0.05) / (0.01 / 4.0)));
+            vel(i,j,k,0) = 0.0;
+            vel(i,j,k,1) = eta * 4.0;
+        });
+    }
     else if (333 == m_probtype)
     {
         Real dyinv = 1.0 / Geom(lev).Domain().length(1);

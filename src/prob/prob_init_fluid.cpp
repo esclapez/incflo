@@ -117,6 +117,14 @@ void incflo::prob_init_fluid (int lev)
                                   ld.tracer.array(mfi),
                                   domain, dx, problo, probhi);
         }
+        else if (666 == m_probtype)
+        {
+            init_enclosed_jet(vbx, gbx,
+                              ld.velocity.array(mfi),
+                              ld.density.array(mfi),
+                              ld.tracer.array(mfi),
+                              domain, dx, problo, probhi);
+        }
         else if (21 == m_probtype || 22 == m_probtype || 23 == m_probtype)
         {
             init_double_shear_layer(vbx, gbx,
@@ -228,6 +236,33 @@ void incflo::init_vortex_in_sphere (Box const& vbx, Box const& gbx,
                                GpuArray<Real, AMREX_SPACEDIM> const& dx,
                                GpuArray<Real, AMREX_SPACEDIM> const& problo,
                                GpuArray<Real, AMREX_SPACEDIM> const& probhi)
+{
+    amrex::ParallelFor(vbx, [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    {
+        Real x = problo[0] + (i+0.5)*dx[0];
+        Real y = problo[1] + (j+0.5)*dx[1];
+        Real deltax = x;
+        Real deltay = y;
+        Real d_sq = deltax*deltax + deltay*deltay;
+        Real r_sq = 0.003*0.003;
+        Real u_vort = -0.2*deltay/r_sq * exp(-d_sq/r_sq/2.);
+        Real v_vort =  0.2*deltax/r_sq * exp(-d_sq/r_sq/2.);
+        vel(i,j,k,0) =  u_vort;
+        vel(i,j,k,1) =  v_vort;
+#if (AMREX_SPACEDIM == 3)
+        vel(i,j,k,2) = 0.0;
+#endif
+    });
+}
+
+void incflo::init_enclosed_jet (Box const& vbx, Box const& gbx,
+                                Array4<Real> const& vel,
+                                Array4<Real> const& density,
+                                Array4<Real> const& tracer,
+                                Box const& domain,
+                                GpuArray<Real, AMREX_SPACEDIM> const& dx,
+                                GpuArray<Real, AMREX_SPACEDIM> const& problo,
+                                GpuArray<Real, AMREX_SPACEDIM> const& probhi)
 {
     amrex::ParallelFor(vbx, [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
