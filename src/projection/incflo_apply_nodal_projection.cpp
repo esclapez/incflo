@@ -77,8 +77,8 @@ void incflo::ApplyNodalProjection (Vector<MultiFab const*> density,
     }
 
     Vector<amrex::MultiFab> sigma(finest_level+1);
-    if (!m_constant_density)
-    {
+    //if (!m_constant_density)
+    //{
         for (int lev = 0; lev <= finest_level; ++lev )
         {
             sigma[lev].define(grids[lev], dmap[lev], 1, 0, MFInfo(), *m_factory[lev]);
@@ -89,14 +89,18 @@ void incflo::ApplyNodalProjection (Vector<MultiFab const*> density,
             {
                 Box const& bx = mfi.tilebox();
                 Array4<Real> const& sig = sigma[lev].array(mfi);
-                Array4<Real const> const& rho = density[lev]->const_array(mfi);
-                amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+                Array4<Real const> const& rho = m_constant_density ? Array4<Real>{} : density[lev]->const_array(mfi);
+                amrex::ParallelFor(bx, [=,cst_rho=m_constant_density,rho_0=m_ro_0] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
-                    sig(i,j,k) = scaling_factor / rho(i,j,k);
+                    if (cst_rho) {
+                       sig(i,j,k) = scaling_factor / rho_0;
+                    } else {
+                       sig(i,j,k) = scaling_factor / rho(i,j,k);
+                    }
                 });
             }
         }
-    }
+    //}
 
     // Perform projection
     std::unique_ptr<Hydro::NodalProjector> nodal_projector;
@@ -123,16 +127,16 @@ void incflo::ApplyNodalProjection (Vector<MultiFab const*> density,
     LPInfo info;
     info.setMaxCoarseningLevel(m_nodal_mg_max_coarsening_level);
 
-    if (m_constant_density)
-    {
-        Real constant_sigma = scaling_factor / m_ro_0;
-        nodal_projector.reset(new Hydro::NodalProjector(vel, constant_sigma,
-                                         Geom(0,finest_level), info));
-    } else
-    {
+    //if (m_constant_density)
+    //{
+    //    Real constant_sigma = scaling_factor / m_ro_0;
+    //    nodal_projector.reset(new Hydro::NodalProjector(vel, constant_sigma,
+    //                                     Geom(0,finest_level), info));
+    //} else
+    //{
         nodal_projector.reset(new Hydro::NodalProjector(vel, GetVecOfConstPtrs(sigma),
                                          Geom(0,finest_level), info));
-    }
+    //}
     nodal_projector->setDomainBC(bclo, bchi);
 
 #ifdef AMREX_USE_EB
