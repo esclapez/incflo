@@ -164,6 +164,7 @@ void incflo::ReadParameters ()
         pp_nodal.query( "mg_max_coarsening_level", m_nodal_mg_max_coarsening_level );
         pp_nodal.query( "mg_rtol"                , m_nodal_mg_rtol );
         pp_nodal.query( "mg_atol"                , m_nodal_mg_atol );
+        pp_nodal.query( "useRAP"                 , m_proj_useRAP );
     } // end prefix nodal
 
 #ifdef AMREX_USE_EB

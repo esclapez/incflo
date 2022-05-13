@@ -146,6 +146,7 @@ void incflo::ApplyNodalProjection (Vector<MultiFab const*> density,
        }
     }
 #endif
+    if (m_proj_useRAP) nodal_projector->getLinOp().setCoarseningStrategy(MLNodeLinOp::CoarseningStrategy::RAP);
 
     nodal_projector->project(m_nodal_mg_rtol, m_nodal_mg_atol);
 
