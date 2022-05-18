@@ -33,6 +33,8 @@ void incflo::ErrorEst (int lev, TagBoxArray& tags, Real time, int /*ngrow*/)
             gradrhoerr_v.resize(max_level+1, last);
         }
 
+        pp.query("refine_EB", m_refine_cutcells);
+
         tag_region_lo.resize(3);
         tag_region_hi.resize(3);
 
@@ -143,7 +145,6 @@ void incflo::ErrorEst (int lev, TagBoxArray& tags, Real time, int /*ngrow*/)
     }
 
 #ifdef AMREX_USE_EB
-    m_refine_cutcells = true;
     // Refine on cut cells
     if (m_refine_cutcells)
     {
