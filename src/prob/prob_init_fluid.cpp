@@ -271,11 +271,11 @@ void incflo::init_enclosed_jet (Box const& vbx, Box const& gbx,
         Real deltax = x;
         Real deltay = y;
         Real d_sq = deltax*deltax + deltay*deltay;
-        Real r_sq = 0.003*0.003;
+        Real r_sq = 0.1*0.1;
         Real u_vort = -0.2*deltay/r_sq * exp(-d_sq/r_sq/2.);
         Real v_vort =  0.2*deltax/r_sq * exp(-d_sq/r_sq/2.);
-        vel(i,j,k,0) =  u_vort;
-        vel(i,j,k,1) =  v_vort;
+        vel(i,j,k,0) =  0.0*u_vort;
+        vel(i,j,k,1) =  0.0*v_vort;
 #if (AMREX_SPACEDIM == 3)
         vel(i,j,k,2) = 0.0;
 #endif
